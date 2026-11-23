@@ -49,7 +49,7 @@ body.viewmode #pg input,body.viewmode #pg select,body.viewmode #pg textarea{poin
 body.viewmode ::placeholder{color:transparent}
 body.viewmode select{appearance:none;-webkit-appearance:none}
 .vbar{max-width:210mm;margin:12px auto 10px;background:#151515;color:#f3e6c8;border-radius:10px;padding:12px 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-family:PopM,sans-serif;font-size:14px;border:1px solid #a8802c}
-.vbar .vt span{color:#f3c66d;font-size:12.5px}.vbar .vbtn{display:flex;gap:8px;flex-wrap:wrap}
+.vbar .vexp{flex-basis:100%;font-size:12.5px;color:#ffcf7a}.vbar .vt span{color:#f3c66d;font-size:12.5px}.vbar .vbtn{display:flex;gap:8px;flex-wrap:wrap}
 .vbar button,.vbar a{background:#f3c66d;color:#151515;border:0;border-radius:8px;padding:9px 14px;font:inherit;font-size:13.5px;cursor:pointer;text-decoration:none}
 .vbar a{background:#25d366;color:#fff}
 </style><script>function setSig(id,src){const i=document.getElementById(id);if(!i)return;if(src){i.src=src;i.style.display='block'}else{i.removeAttribute('src');i.style.display='none'}}</script></head><body>
@@ -364,39 +364,38 @@ async function printPic(){const b=await billBlob();if(HAS_CLAUDE){if(await picOu
 function fname(){return 'Aylin_Lights_Bill_'+($('no').value||'')+'.png'}
 function billUsed(){const d=cur();return !!(d.cn||d.cp||d.rows.some(r=>r.d||N(r.r)))}
 function saveNext(){if(!billUsed()){toast('This bill is empty – add a customer or an item first');return}afterSent()}
-function afterSent(){if(!billUsed())return;const old=$('no').value;saveNow(true);newBill();toast('✔ Bill '+old+' saved  ·  New bill '+$('no').value+' ready');scrollTo({top:0,behavior:'smooth'})}
+function afterSent(){if(VIEW||!billUsed())return;const old=$('no').value;saveNow(true);newBill();toast('✔ Bill '+old+' saved  ·  New bill '+$('no').value+' ready');scrollTo({top:0,behavior:'smooth'})}
 async function saveImg(){if(await fileOut(await billBlob(),fname()))afterSent()}
 /* ---------- bill link (customer can open, save picture or PDF) ---------- */
 const APPURL='https://alira26-crypto.github.io/aylinlights-ClientBillsDetail/';
 const b64u=u8=>{let s='';for(let i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')};
 const ub64=t=>{t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';const s=atob(t),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u};
 async function packBill(d){const o={};['no','dt','cn','cp','ca','pm','stat','dis','del','adv','rm','tot','bal'].forEach(k=>{if(d[k]!==''&&d[k]!=null&&d[k]!==0&&d[k]!=='0')o[k]=d[k]});
- o.rows=(d.rows||[]).filter(r=>r.d||N(r.r)||N(r.q)).map(r=>{const x={};['d','c','q','r','ds'].forEach(k=>{if(r[k])x[k]=r[k]});return x});
+ o.x=Date.now();o.rows=(d.rows||[]).filter(r=>r.d||N(r.r)||N(r.q)).map(r=>{const x={};['d','c','q','r','ds'].forEach(k=>{if(r[k])x[k]=r[k]});return x});
  const raw=new TextEncoder().encode(JSON.stringify(o));
  if(window.CompressionStream){try{const z=new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate'))).arrayBuffer());return '1'+b64u(z)}catch(e){}}
  return '0'+b64u(raw)}
 async function unpackBill(t){const u=ub64(t.slice(1));let raw=u;if(t[0]==='1')raw=new Uint8Array(await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());return JSON.parse(new TextDecoder().decode(raw))}
 function waPhone(v){let p=String(v||'').replace(/\D/g,'');if(p.startsWith('0092'))p=p.slice(2);if(p.startsWith('0'))p='92'+p.slice(1);else if(p.length===10&&p.startsWith('3'))p='92'+p;return p}
-function thanksMsg(d,link){const nm=(d.cn||'').trim();return `Assalam o Alaikum${nm?' '+nm:''}! 🌟
+function thanksMsg(d,link){const nm=(d.cn||'').trim();return `Assalam o Alaikum${nm?' '+nm:''},
 
-Thank you for choosing *Aylin Lights and Power Supply* 💡
-It was a pleasure serving you.
+Thank you for choosing *Aylin Lights and Power Supply*. It was a pleasure serving you.
 
-🧾 Your bill *${d.no}* – *Rs ${fmt(N(d.tot))}*${N(d.bal)>0?` (balance due Rs ${fmt(N(d.bal))})`:''}
-👉 ${link}
+Your bill *${d.no}* - *Rs ${fmt(N(d.tot))}*${N(d.bal)>0?` (balance due Rs ${fmt(N(d.bal))})`:''}
+View your bill here:
+${link}
 
-Tap the link to view your bill anytime — you can save it as a picture or PDF.
+Please note: this link is valid for *30 minutes only*. Open it and tap *Save Picture* or *Save PDF* to keep your bill. If the link has expired, just message us and we will send it again.
 
-May your new lights brighten your home! ✨
-For any help or after-sales service, just reply here or call +92 312 4828573.
+For any help or after-sales service, reply here or call +92 312 4828573.
 
 Follow us for new arrivals:
-📸 Instagram: https://instagram.com/aylinlight_
-👍 Facebook: https://facebook.com/share/1Q8bsMoYxR
-📢 WhatsApp Channel: https://whatsapp.com/channel/0029Vb9ZcS5KGGGIejdqi905
+Instagram: https://instagram.com/aylinlight_
+Facebook: https://facebook.com/share/1Q8bsMoYxR
+WhatsApp Channel: https://whatsapp.com/channel/0029Vb9ZcS5KGGGIejdqi905
 
 *AYLIN LIGHTS AND POWER SUPPLY*
-*✨ Light Up Your Home with Style ✨*`}
+*Light Up Your Home with Style*`}
 function vcard(d){const nm=(d.cn||'Customer').trim(),p=waPhone(d.cp);return `BEGIN:VCARD\nVERSION:3.0\nFN:${nm} (Aylin Customer)\nN:;${nm} (Aylin Customer);;;\nTEL;TYPE=CELL:+${p}\nNOTE:Aylin Lights customer – bill ${d.no}\nEND:VCARD\n`}
 async function sendLink(){if(!billUsed()){toast('This bill is empty – add a customer or an item first');return}
  saveNow(true);const d=cur(),link=APPURL+'#v='+await packBill(d),msg=thanksMsg(d,link),p=waPhone(d.cp);let did=false;
@@ -408,6 +407,17 @@ async function sendLink(){if(!billUsed()){toast('This bill is empty – add a cu
  <textarea readonly class="poptxt" style="height:150px">${_esc(msg)}</textarea>`,
  [['Close',0],['📋 Copy message',1,'p']],{wide:1,onOpen:m=>{const a=m.querySelector('#wago');if(a)a.addEventListener('click',()=>did=true)},onBtn:async v=>{if(v===1){try{await navigator.clipboard.writeText(msg);did=true;note('Copied ✔ Paste it in WhatsApp.')}catch(e){note('Could not copy here — press and hold the text to copy it.')}return true}return false}});
  if(did)afterSent()}
+async function billPdf(){const png=await billBlob();const bm=await createImageBitmap(png);const c=document.createElement('canvas');c.width=bm.width;c.height=bm.height;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(bm,0,0);
+ const jb=await new Promise(r=>c.toBlob(r,'image/jpeg',0.9));const jpg=new Uint8Array(await jb.arrayBuffer());const W=595.28,H=841.89;
+ const enc=t=>new TextEncoder().encode(t);const parts=[],offs=[];let len=0;const add=b=>{if(typeof b==='string')b=enc(b);parts.push(b);len+=b.length};
+ add('%PDF-1.4\n');const obj=(n,body)=>{offs[n]=len;add(n+' 0 obj\n');if(Array.isArray(body))body.forEach(add);else add(body);add('\nendobj\n')};
+ obj(1,'<< /Type /Catalog /Pages 2 0 R >>');obj(2,'<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+ obj(3,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`);
+ obj(4,[`<< /Type /XObject /Subtype /Image /Width ${c.width} /Height ${c.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpg.length} >>\nstream\n`,jpg,'\nendstream']);
+ const cs=`q ${W} 0 0 ${H} 0 0 cm /Im0 Do Q`;obj(5,`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`);
+ const xr=len;let t='xref\n0 6\n0000000000 65535 f \n';for(let n=1;n<=5;n++)t+=String(offs[n]).padStart(10,'0')+' 00000 n \n';add(t+'trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n'+xr+'\n%%EOF');
+ return new Blob(parts,{type:'application/pdf'})}
+const pdfName=()=>'Aylin_Lights_Bill_'+($('no').value||'')+'.pdf';
 function mailMsg(d,link){return thanksMsg(d,link).replace(/\*/g,'').replace(/_([^_\n]+)_/g,'$1')}
 async function sendMail(){if(!billUsed()){toast('This bill is empty – add a customer or an item first');return}
  saveNow(true);const d=cur(),link=APPURL+'#v='+await packBill(d);let EM={};try{EM=JSON.parse(G('aylin_emails')||'{}')||{}}catch(e){}
@@ -418,16 +428,29 @@ async function sendMail(){if(!billUsed()){toast('This bill is empty – add a cu
  [['Cancel',0],['✉ Other email app',2],['📧 Open in Gmail',1,'p']],{wide:1,onBtn:(v,m)=>{if(!v)return false;const to=m.querySelector('#emto').value.trim();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)){m.querySelector('#emto').style.borderColor='#c0392b';m.querySelector('#emto').focus();return true}window._emto=to;return false}});
  if(!v||!window._emto)return;const to=window._emto;window._emto=null;EM[key]=to;S('aylin_emails',JSON.stringify(EM));
  const body=mailMsg(d,link),url=v===1?`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`:`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;
- if(await linkOut(url,v===1?'📧 Open Gmail – '+_esc(to):'✉ Open email app – '+_esc(to),''))afterSent()}
+ const pdf=await billPdf(),pn=pdfName();did=false;
+ const canShare=(()=>{try{return navigator.canShare&&navigator.canShare({files:[new File([pdf],pn,{type:'application/pdf'})]})}catch(e){return false}})();
+ if(!canShare)fileOut(pdf,pn);
+ await pop(`<p style="font-family:PopB;font-size:17px;margin-bottom:6px">📧 Email ready for ${_esc(to)}</p>
+ <p style="font-size:13.5px;color:#555;margin-bottom:10px">The bill PDF <b>${_esc(pn)}</b> is ready. Email apps don’t allow attaching files automatically from a link, so:</p>
+ ${canShare?`<button class="popbtn p" id="shpdf" style="width:100%;margin-bottom:8px">📎 Share PDF to Gmail (attached)</button><p style="font-size:12.5px;color:#777;margin:-2px 0 10px">Choose <b>Gmail</b> → the PDF is attached and the message is filled. Type/paste <b>${_esc(to)}</b> in “To” (already copied).</p>`:''}
+ <a class="popbtn wa" id="gmo" href="${_esc(url)}" target="_blank" rel="noopener" style="background:#d93025;border-color:#b3261e">📧 Open ${v===1?'Gmail':'email app'} (message + link ready)</a>
+ <p style="font-size:12.5px;color:#777;margin:8px 0 0">On a laptop the PDF is also <b>downloaded</b> now — in Gmail press 📎 and choose it from Downloads (or drag it into the email).</p>`,
+ [['Close',0]],{wide:1,onOpen:m=>{const a=m.querySelector('#gmo');if(a)a.addEventListener('click',()=>did=true);const b=m.querySelector('#shpdf');if(b)b.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(to)}catch(e){}try{await navigator.share({files:[new File([pdf],pn,{type:'application/pdf'})],title:sub,text:body});did=true}catch(e){}})}});
+ if(did)afterSent()}
 async function startView(){let d=null;try{d=await unpackBill(location.hash.slice(3))}catch(e){}
  document.body.classList.add('viewmode');
  if(!d){const has=/^#v=./.test(location.hash);document.body.innerHTML=`<div style="font-family:PopM,sans-serif;min-height:100vh;background:#151515;color:#f3e6c8;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;gap:14px"><div style="font-family:Cal,serif;font-size:38px;color:#f3c66d">Aylin Lights</div><div style="letter-spacing:4px;font-size:12px">AND POWER SUPPLY</div><div style="font-size:15px;max-width:420px;margin-top:10px">${has?'This bill link is incomplete. Please ask us to send it again.':'Bills from Aylin Lights open here from the link we send you on WhatsApp.'}</div><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px"><a style="background:#25d366;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none" href="https://wa.me/923124828573">💬 WhatsApp</a><a style="background:#f3c66d;color:#151515;padding:10px 16px;border-radius:8px;text-decoration:none" href="https://instagram.com/aylinlight_">📸 Instagram</a><a style="background:#f3c66d;color:#151515;padding:10px 16px;border-radius:8px;text-decoration:none" href="https://facebook.com/share/1Q8bsMoYxR">👍 Facebook</a></div></div>`;return}
+ const LIFE=30*60*1000,left=d.x?LIFE-(Date.now()-d.x):-1;
+ if(left<=0){document.body.innerHTML=`<div style="font-family:PopM,sans-serif;min-height:100vh;background:#151515;color:#f3e6c8;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;gap:14px"><div style="font-family:Cal,serif;font-size:38px;color:#f3c66d">Aylin Lights</div><div style="letter-spacing:4px;font-size:12px">AND POWER SUPPLY</div><div style="font-size:17px;max-width:440px;margin-top:10px">This bill link has expired.</div><div style="font-size:14px;max-width:440px;color:#cbbd9f">For your security, bill links work for 30 minutes. Please message us and we will send your bill again.</div><a style="background:#25d366;color:#fff;padding:11px 18px;border-radius:8px;text-decoration:none;margin-top:8px" href="https://wa.me/923124828573">💬 WhatsApp us – +92 312 4828573</a></div>`;return}
  load(Object.assign({csig:''},d));[...$('rows').children].forEach(tr=>{if(!tr.querySelector('.d').value&&!N(tr.querySelector('.rt').value))tr.remove()});calc();
  document.querySelectorAll('#pg input,#pg select,#pg textarea').forEach(e=>{e.readOnly=true;if(e.tagName==='SELECT')e.disabled=true;e.tabIndex=-1});
  document.title='Aylin Lights – Bill '+d.no;
  const vb=document.createElement('div');vb.className='vbar noprint';vb.innerHTML=`<div class="vt">🧾 Your bill from <b>Aylin Lights and Power Supply</b><br><span>Thank you for shopping with us! ✨</span></div>
- <div class="vbtn"><button onclick="vPic()">🖼 Save Picture</button><button onclick="printPic()">📄 Save PDF / Print</button><a href="https://wa.me/923124828573" target="_blank" rel="noopener">💬 Contact us</a></div>`;
+ <div class="vbtn"><button onclick="vPic()">🖼 Save Picture</button><button onclick="vPdf()">📄 Save PDF</button><a href="https://wa.me/923124828573" target="_blank" rel="noopener">💬 Contact us</a></div><div class="vexp" id="vexp"></div>`;
+ const tick=()=>{const l=LIFE-(Date.now()-d.x);const e=$('vexp');if(!e)return;if(l<=0){location.reload();return}const m=Math.ceil(l/60000);e.textContent=`⏳ This link expires in ${m} minute${m>1?'s':''}. Please save your picture or PDF now.`};setTimeout(tick,0);setInterval(tick,20000);
  const pg=$('pg');pg.parentNode.insertBefore(vb,pg)}
-async function vPic(){const b=await billBlob();if(!(await shareFile(b,fname())))fileOut(b,fname())}
+async function vPic(){const b=await billBlob();if(!(await shareFile(b,fname())))fileOut(b,fname());toast('✔ Picture saved')}
+async function vPdf(){const b=await billPdf();fileOut(b,pdfName());toast('✔ PDF saved')}
 async function waImg(){const b=await billBlob();if(await picOut(b,fname(),$('cp').value,'Aylin Lights and Power Supply – Bill '+$('no').value))afterSent()}
 </script><script>document.addEventListener('input',e=>{const t=e.target;if(t.classList&&t.classList.contains('c')){const v=t.value.replace(/[^0-9]/g,'');if(v!==t.value)t.value=v}},true);</script><script>if('serviceWorker' in navigator&&/^https:/.test(location.protocol)){navigator.serviceWorker.register('sw.js').catch(()=>{})}</script></body></html>
