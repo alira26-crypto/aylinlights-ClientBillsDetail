@@ -17,7 +17,7 @@ body:not([data-v=reg]) #reg{display:none!important}
 body:not([data-v=led]) #led{display:none!important}
 .bar button{font-family:PopM;font-size:14px;padding:10px 16px;border-radius:8px;border:2px solid #c9a24a;background:#0b0a08;color:#e3b75c;cursor:pointer}
 .bar button.p{background:#c9a24a;color:#0b0a08}
-.page{width:210mm;height:297mm;margin:0 auto;background:#fff;position:relative;display:flex;flex-direction:column;overflow:hidden}
+.page{width:210mm;min-height:297mm;height:auto;margin:0 auto;background:#fff;position:relative;display:flex;flex-direction:column;overflow:hidden}
 .head{height:47mm;background:#0b0a08;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0 10mm 2mm;border-bottom:1.4mm solid #c9a24a}
 .head img{height:25.5mm;display:block}
 .hr{text-align:center;color:#f2e6c8;font-size:8.3pt;line-height:1.5;margin-top:.3mm}.hr b{font-family:PopM;color:#e3b75c;font-weight:normal}
@@ -767,7 +767,7 @@ function revBox(d){const done=(()=>{try{return localStorage.getItem('aylin_rv_'+
  setTimeout(()=>{const box=$('vrev');if(!box)return;let S=0;const L=['','Very bad','Not good','Okay','Good','Excellent'];
   box.querySelectorAll('.rs button').forEach(b=>b.onclick=()=>{S=+b.dataset.i;box.querySelectorAll('.rs button').forEach(x=>x.classList.toggle('on',+x.dataset.i<=S));box.querySelector('.rl').textContent=L[S];box.querySelector('.sb').disabled=false});
   box.querySelectorAll('textarea').forEach(t=>t.oninput=()=>{box.querySelector('.sb').disabled=!(S||box.querySelector('#rvf').value.trim()||box.querySelector('#rvs').value.trim())});box.querySelector('.sb').onclick=async()=>{const fb=box.querySelector('#rvf').value.trim().slice(0,600),sg=box.querySelector('#rvs').value.trim().slice(0,600);if(!S&&!fb&&!sg)return;
-   const thanks=()=>{try{localStorage.setItem('aylin_rv_'+d.no,'1')}catch(e){}box.innerHTML=`<div class="ok"><b>Thank you for your feedback! 🙏</b><br>We truly appreciate you taking the time to share it. Your review helps Aylin Lights serve you better.<br><span style="font-size:12.5px;color:#cbbd9f">آپ کی رائے کا بہت شکریہ!</span></div>`};
+   const thanks=()=>{try{localStorage.setItem('aylin_rv_'+d.no,'1')}catch(e){}box.innerHTML=`<div class="ok"><b>Thank you for your feedback! 🙏</b><br>We truly appreciate you taking the time to share it. Your review helps Aylin Lights serve you better.</div>`};
    if(d.g){box.querySelector('.sb').disabled=true;box.querySelector('.sb').textContent='Sending…';try{await fetch(d.g,{method:'POST',mode:'no-cors',body:JSON.stringify({op:'review',no:d.no,cn:d.cn||'',cp:d.cp||'',s:S,fb,sg})})}catch(e){}thanks()}
    else{const msg=`*Aylin Lights – Customer Review*\nBill: ${d.no}\nRating: ${S?S+'/5 '+'⭐'.repeat(S):'–'}${fb?'\nFeedback: '+fb:''}${sg?'\nSuggestion: '+sg:''}`;window.open('https://wa.me/923124828573?text='+encodeURIComponent(msg),'_blank');thanks()}}},0);
  return`<div class="vrev" id="vrev"><div class="h">⭐ How was your experience? <span style="font-family:PopM;font-size:12px;color:#a99c80">(optional)</span></div><div class="s2">Rate us and share any feedback or suggestion. It takes a few seconds.</div>
