@@ -69,6 +69,10 @@ body.viewmode select{appearance:none;-webkit-appearance:none}
 .vbar .vexp{flex-basis:100%;font-size:12.5px;color:#ffcf7a}.vbar .vt span{color:#f3c66d;font-size:12.5px}.vbar .vbtn{display:flex;gap:8px;flex-wrap:wrap}
 .vbar button,.vbar a{background:#f3c66d;color:#151515;border:0;border-radius:8px;padding:9px 14px;font:inherit;font-size:13.5px;cursor:pointer;text-decoration:none}
 .vbar a{background:#25d366;color:#fff}
+.vrev{flex-basis:100%;border-top:1px solid #3a3426;padding-top:12px;margin-top:2px}.vrev .h{font-family:PopB,sans-serif;font-size:15px;color:#fff}.vrev .s2{font-size:12.5px;color:#cbbd9f;margin:2px 0 6px}
+.vrev .rs{display:flex;gap:4px}.vrev .rs button{background:none;padding:0 3px;font-size:34px;line-height:1;color:#4a4436}.vrev .rs button.on{color:#f3b62c}.vrev .rl{min-height:18px;font-size:13px;color:#f3c66d;margin:2px 0 6px}
+.vrev textarea{width:100%;min-height:58px;border-radius:8px;border:1px solid #4a4436;background:#0f0f0f;color:#fff;padding:8px;font:inherit;font-size:14px;margin-top:6px;resize:vertical}
+.vrev .sb{margin-top:8px;width:100%;background:#25d366;color:#fff;font-family:PopB,sans-serif;padding:11px}.vrev .sb:disabled{background:#3b3b3b;color:#888}.vrev .ok{font-size:14.5px;line-height:1.6;color:#f3e6c8}.vrev .ok b{color:#f3c66d;font-size:17px}
 </style><script>function setSig(id,src){const i=document.getElementById(id);if(!i)return;if(src){i.src=src;i.style.display='block'}else{i.removeAttribute('src');i.style.display='none'}}</script></head><body data-v="bill">
 <div id="topnav" class="noprint"><button data-v="bill" class="on" onclick="view('bill')">🧾 Bill</button><button data-v="reg" onclick="view('reg')">📒 All Bills</button><button data-v="led" onclick="openLed()">📊 Purchases &amp; Profit</button></div>
 <script>(function(){const f=()=>{document.documentElement.style.setProperty('--pz',Math.min(1,(Math.min(innerWidth,document.documentElement.clientWidth)-30)/793.7).toFixed(4))};f();addEventListener('resize',f)})();
@@ -433,6 +437,8 @@ ${link}
 
 We truly appreciate your trust in Aylin Lights. May your new lights bring brightness and joy to your home!
 
+*Your opinion matters:* on the bill page you can rate us and share a feedback or suggestion (optional, takes a few seconds).
+
 For service, warranty or new arrivals, we are always here:
 Call / WhatsApp: +92 312 4828573
 
@@ -656,7 +662,7 @@ const APPURL='https://alira26-crypto.github.io/aylinlights-ClientBillsDetail/';
 const b64u=u8=>{let s='';for(let i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s).replace(/=+$/,'')};
 const ub64=t=>{t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';const s=atob(t),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u};
 async function packBill(d){const o={};['no','dt','cn','cp','ca','pm','stat','dis','del','adv','rm','tot','bal'].forEach(k=>{if(d[k]!==''&&d[k]!=null&&d[k]!==0&&d[k]!=='0')o[k]=d[k]});
- o.x=Date.now();if(d.e)o.e=d.e;o.rows=(d.rows||[]).filter(r=>r.d||N(r.r)||N(r.q)).map(r=>{const x={};['d','c','q','r','ds'].forEach(k=>{if(r[k])x[k]=r[k]});return x});
+ o.x=Date.now();if(d.e)o.e=d.e;if(d.stat==='PAID'){try{const g=(JSON.parse(G('aylin_gs')||'{}')||{}).url;if(g)o.g=g}catch(e){}}o.rows=(d.rows||[]).filter(r=>r.d||N(r.r)||N(r.q)).map(r=>{const x={};['d','c','q','r','ds'].forEach(k=>{if(r[k])x[k]=r[k]});return x});
  const raw=new TextEncoder().encode(JSON.stringify(o));
  if(window.CompressionStream){try{const z=new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate'))).arrayBuffer());return '1'+b64u(z)}catch(e){}}
  return '0'+b64u(raw)}
@@ -753,9 +759,20 @@ async function startView(){let d=null;try{d=await unpackBill(location.hash.slice
  document.querySelectorAll('#pg input,#pg select,#pg textarea').forEach(e=>{e.readOnly=true;if(e.tagName==='SELECT')e.disabled=true;e.tabIndex=-1});
  document.title='Aylin Lights – Bill '+d.no;
  const vb=document.createElement('div');vb.className='vbar noprint';vb.innerHTML=`<div class="vt">🧾 Your bill from <b>Aylin Lights and Power Supply</b><br><span>Thank you for shopping with us! ✨</span></div>
- <div class="vbtn"><button onclick="vPic()">🖼 Save Picture</button><button onclick="vPdf()">📄 Save PDF</button><a href="https://wa.me/923124828573" target="_blank" rel="noopener">💬 Contact us</a></div><div class="vexp" id="vexp"></div>`;
+ <div class="vbtn"><button onclick="vPic()">🖼 Save Picture</button><button onclick="vPdf()">📄 Save PDF</button><a href="https://wa.me/923124828573" target="_blank" rel="noopener">💬 Contact us</a></div><div class="vexp" id="vexp"></div>${d.stat==='PAID'?revBox(d):''}`;
  const tick=()=>{const l=LIFE-(Date.now()-d.x);const e=$('vexp');if(!e)return;if(l<=0){location.reload();return}const m=Math.ceil(l/60000),h=Math.floor(m/60);e.textContent=`⏳ This link expires in ${m>90?h+' hours':m+' minute'+(m>1?'s':'')}. Please save your picture or PDF now.`};setTimeout(tick,0);setInterval(tick,20000);
  const pg=$('pg');pg.parentNode.insertBefore(vb,pg)}
+function revBox(d){const done=(()=>{try{return localStorage.getItem('aylin_rv_'+d.no)}catch(e){return null}})();
+ if(done)return`<div class="vrev"><div class="ok"><b>Thank you for your feedback! 🙏</b><br>We have received your review for bill ${_esc(d.no)}.</div></div>`;
+ setTimeout(()=>{const box=$('vrev');if(!box)return;let S=0;const L=['','Very bad','Not good','Okay','Good','Excellent'];
+  box.querySelectorAll('.rs button').forEach(b=>b.onclick=()=>{S=+b.dataset.i;box.querySelectorAll('.rs button').forEach(x=>x.classList.toggle('on',+x.dataset.i<=S));box.querySelector('.rl').textContent=L[S];box.querySelector('.sb').disabled=false});
+  box.querySelectorAll('textarea').forEach(t=>t.oninput=()=>{box.querySelector('.sb').disabled=!(S||box.querySelector('#rvf').value.trim()||box.querySelector('#rvs').value.trim())});box.querySelector('.sb').onclick=async()=>{const fb=box.querySelector('#rvf').value.trim().slice(0,600),sg=box.querySelector('#rvs').value.trim().slice(0,600);if(!S&&!fb&&!sg)return;
+   const thanks=()=>{try{localStorage.setItem('aylin_rv_'+d.no,'1')}catch(e){}box.innerHTML=`<div class="ok"><b>Thank you for your feedback! 🙏</b><br>We truly appreciate you taking the time to share it. Your review helps Aylin Lights serve you better.<br><span style="font-size:12.5px;color:#cbbd9f">آپ کی رائے کا بہت شکریہ!</span></div>`};
+   if(d.g){box.querySelector('.sb').disabled=true;box.querySelector('.sb').textContent='Sending…';try{await fetch(d.g,{method:'POST',mode:'no-cors',body:JSON.stringify({op:'review',no:d.no,cn:d.cn||'',cp:d.cp||'',s:S,fb,sg})})}catch(e){}thanks()}
+   else{const msg=`*Aylin Lights – Customer Review*\nBill: ${d.no}\nRating: ${S?S+'/5 '+'⭐'.repeat(S):'–'}${fb?'\nFeedback: '+fb:''}${sg?'\nSuggestion: '+sg:''}`;window.open('https://wa.me/923124828573?text='+encodeURIComponent(msg),'_blank');thanks()}}},0);
+ return`<div class="vrev" id="vrev"><div class="h">⭐ How was your experience? <span style="font-family:PopM;font-size:12px;color:#a99c80">(optional)</span></div><div class="s2">Rate us and share any feedback or suggestion. It takes a few seconds.</div>
+ <div class="rs">${[1,2,3,4,5].map(i=>`<button type="button" data-i="${i}" aria-label="${i} of 5">★</button>`).join('')}</div><div class="rl"></div>
+ <textarea id="rvf" placeholder="Your feedback (optional)"></textarea><textarea id="rvs" placeholder="Any suggestion for us? (optional)"></textarea><button class="sb" disabled>✔ Submit review</button></div>`}
 async function vSave(blob,name,isPic){const u=URL.createObjectURL(blob),type=isPic?'image/png':'application/pdf';
  const canSh=(()=>{try{return !!(navigator.canShare&&navigator.canShare({files:[new File([blob],name,{type})]}))}catch(e){return false}})();
  await pop(`<p style="font-family:PopB;font-size:17px;margin-bottom:6px">${isPic?'🖼 Your bill picture is ready':'📄 Your bill PDF is ready'}</p>
