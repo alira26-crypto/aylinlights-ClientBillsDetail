@@ -795,4 +795,32 @@ async function vSave(blob,name,isPic){const u=URL.createObjectURL(blob),type=isP
 async function vPic(){const b=await billBlob();await vSave(b,fname(),true)}
 async function vPdf(){const b=await billPdf();await vSave(b,pdfName(),false)}
 async function waImg(){const b=await billBlob();if(await picOut(b,fname(),$('cp').value,'Aylin Lights and Power Supply – Bill '+$('no').value))afterSent()}
-</script><script>document.addEventListener('input',e=>{const t=e.target;if(t.classList&&t.classList.contains('c')){const v=t.value.replace(/[^0-9]/g,'');if(v!==t.value)t.value=v}},true);</script><script>if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)&&!HAS_CLAUDE){navigator.serviceWorker.register('sw.js').catch(()=>{})}</script></body></html>
+</script><script>document.addEventListener('input',e=>{const t=e.target;if(t.classList&&t.classList.contains('c')){const v=t.value.replace(/[^0-9]/g,'');if(v!==t.value)t.value=v}},true);</script><script>if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)&&!HAS_CLAUDE){navigator.serviceWorker.register('sw.js').catch(()=>{})}</script><script>
+(function(){
+ function _e(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]})}
+ async function aylPay(){
+  try{
+   if(!location.hash||location.hash.slice(0,3)!=='#v=')return;
+   var d=null;try{d=await unpackBill(location.hash.slice(3))}catch(e){return}
+   if(!d)return;
+   var bal=Number(d.bal||0),paid=(d.stat==='PAID');
+   if(paid||bal<=0||!d.g)return;
+   var j=null;try{var r=await fetch(d.g,{method:'POST',body:JSON.stringify({op:'getPay'})});j=await r.json()}catch(e){return}
+   if(!j||!j.ok||!j.pay||!j.pay.qr)return;
+   if(document.getElementById('aylpayc'))return;
+   var pay=j.pay;
+   var card=document.createElement('div');card.id='aylpayc';
+   card.style.cssText='max-width:210mm;margin:5mm auto;background:#fffdf7;border:1px solid #e6d8b0;border-radius:12px;padding:14px 16px;text-align:center;font-family:sans-serif';
+   card.innerHTML='<div style="font-family:PopB,sans-serif;color:#1a1712;font-size:15px;margin-bottom:2px">💳 Pay this bill</div>'
+    +'<div style="color:#8a7a56;font-size:12.5px;margin-bottom:8px">Balance due: <b style="color:#b5121b">Rs '+bal.toLocaleString('en-PK')+'</b></div>'
+    +(pay.title?'<div style="font-family:PopM,sans-serif;color:#2a2318;font-size:13.5px;margin-bottom:6px">'+_e(pay.title)+'</div>':'')
+    +'<img src="'+pay.qr+'" alt="Payment QR" style="width:52mm;max-width:220px;height:auto;border-radius:10px;border:1px solid #eee">'
+    +'<div style="color:#6b5e3a;font-size:12px;margin-top:6px">Scan the QR with your bank or wallet app to pay</div>';
+   var pg=document.getElementById('pg');
+   if(pg&&pg.parentNode){pg.parentNode.insertBefore(card,pg.nextSibling)}else{document.body.appendChild(card)}
+  }catch(e){}
+ }
+ function go(){setTimeout(aylPay,700)}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
+})();
+</script></body></html>
